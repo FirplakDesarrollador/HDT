@@ -1,0 +1,4 @@
+﻿--- Checking TH project ---
+TH Project - Schema: public, Status: 200
+--- Checking MAIN project ---
+Main Project - Schema: public, Status: 404

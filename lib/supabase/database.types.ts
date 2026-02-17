@@ -103,6 +103,30 @@ export interface Database {
           updated_by?: string | null
         }
       }
+      empleados: {
+        Row: {
+          id: number
+          nombreCompleto: string
+          cargo: string | null
+          planta: string | null
+          email: string | null
+          // Add other fields as needed based on the schema provided
+        }
+        Insert: {
+          id?: number
+          nombreCompleto: string
+          cargo?: string | null
+          planta?: string | null
+          email?: string | null
+        }
+        Update: {
+          id?: number
+          nombreCompleto?: string
+          cargo?: string | null
+          planta?: string | null
+          email?: string | null
+        }
+      }
     }
   }
 }

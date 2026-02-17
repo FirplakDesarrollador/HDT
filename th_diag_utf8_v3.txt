@@ -1,0 +1,6 @@
+﻿--- Listing reachable tables ---
+Schema: public, Status: 200
+Schema: th, Status: 406
+Schema: rh, Status: 406
+Schema: PROD, Status: 406
+Schema: conectados, Status: 406

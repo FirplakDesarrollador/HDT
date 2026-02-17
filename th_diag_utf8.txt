@@ -1,0 +1,5 @@
+﻿--- Checking TH project ---
+Schema: public, Table: empleados, Status: 200
+Schema: PROD, Table: empleados, Status: 406
+Schema: conectados, Table: empleados, Status: 406
+Schema: th, Table: empleados, Status: 406
