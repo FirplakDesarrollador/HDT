@@ -65,10 +65,10 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Si hay usuario y accede a la raíz, redirigir al menú
-    if (user && request.nextUrl.pathname === '/') {
-        return NextResponse.redirect(new URL('/menu', request.url))
-    }
+    // Si hay usuario y accede a la raíz, permitir el acceso (app/page.tsx manejará la lógica)
+    // if (user && request.nextUrl.pathname === '/') {
+    //     return NextResponse.redirect(new URL('/menu', request.url))
+    // }
 
     // Si hay usuario y está en /login, redirigir al menú
     if (user && request.nextUrl.pathname.startsWith('/login')) {

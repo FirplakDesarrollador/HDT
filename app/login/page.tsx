@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import NextImage from 'next/image'
 import { Mail, Lock, Loader2, LogIn, AlertCircle, EyeOff, Eye } from 'lucide-react'
 import { createClient } from '../../lib/supabase/browser-client'
 
@@ -45,16 +46,18 @@ export default function LoginPage() {
                 <div className="text-center">
                     <div className="flex justify-center">
                         <div className="transition-transform hover:scale-105">
-                            <img
+                            <NextImage
                                 src="/brand/logo_2.png"
                                 alt="Firplak Logo"
+                                width={180}
+                                height={112}
                                 className="h-28 w-auto object-contain"
                             />
                         </div>
                     </div>
                     <div className="mt-8 space-y-1">
                         <h1 className="text-4xl md:text-5xl font-bold text-brand-primary tracking-tight">
-                            App Gestor HDT's
+                            App Gestor HDTs
                         </h1>
                         <p className="text-xl md:text-2xl font-normal text-brand-primary">
                             ¡Bienvenido!

@@ -11,7 +11,8 @@ async function checkPlants() {
         return
     }
 
-    const uniquePlants = Array.from(new Set(data.map(item => item.planta)))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const uniquePlants = Array.from(new Set((data as any[]).map(item => item.planta)))
     console.log('Plantas encontradas:', uniquePlants)
 }
 

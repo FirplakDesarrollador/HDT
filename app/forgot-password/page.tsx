@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Mail, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Mail, AlertCircle, CheckCircle2, Home } from 'lucide-react'
 import { createClient } from '../../lib/supabase/browser-client'
 
 export default function ForgotPasswordPage() {
@@ -27,6 +27,7 @@ export default function ForgotPasswordPage() {
             } else {
                 setMessage({ type: 'success', text: 'Te hemos enviado un correo electrónico con un enlace para restablecer tu contraseña.' })
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             setMessage({ type: 'error', text: 'Ocurrió un error inesperado. Por favor intenta de nuevo.' })
         } finally {
@@ -38,12 +39,22 @@ export default function ForgotPasswordPage() {
         <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
             {/* Dark Header */}
             <header className="bg-brand-primary p-4 flex items-center shadow-md relative z-10">
-                <button
-                    onClick={() => router.push('/login')}
-                    className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-                >
-                    <ArrowLeft className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => router.push('/login')}
+                        className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                        title="Volver"
+                    >
+                        <ArrowLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                        onClick={() => router.push('/menu')}
+                        className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                        title="Ir al Menú Principal"
+                    >
+                        <Home className="h-6 w-6" />
+                    </button>
+                </div>
                 <div className="flex-1 text-center">
                     <h1 className="text-white text-2xl font-normal tracking-tight">
                         Cambia Contraseña

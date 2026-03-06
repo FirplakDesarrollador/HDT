@@ -127,6 +127,23 @@ export interface Database {
           email?: string | null
         }
       }
+      plantas: {
+        Row: {
+          id: number
+          planta: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          planta: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          planta?: string
+          created_at?: string
+        }
+      }
     }
   }
 }

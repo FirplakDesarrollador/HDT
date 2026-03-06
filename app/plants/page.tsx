@@ -1,14 +1,30 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Factory, Loader2, ChevronRight, AlertCircle, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, Factory, Loader2, ChevronRight, AlertCircle, LayoutGrid, Home } from 'lucide-react'
 import { createClient } from '../../lib/supabase/browser-client'
 import { Database } from '../../lib/supabase/database.types'
 
+type HdtRow = Database['public']['Tables']['hdts']['Row']
+
 export default function PlantsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-zinc-50">
+                <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
+                <p className="text-zinc-500 font-medium font-sans">Cargando plantas...</p>
+            </div>
+        }>
+            <PlantsContent />
+        </Suspense>
+    )
+}
+
+function PlantsContent() {
     const [plants, setPlants] = useState<string[]>([])
     const [totalCount, setTotalCount] = useState<number | null>(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [debugInfo, setDebugInfo] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -32,9 +48,9 @@ export default function PlantsPage() {
                 }
 
                 // Consultar todas las filas
-                const { data, error: fetchError } = await (supabase
+                const { data, error: fetchError } = await supabase
                     .from('hdts')
-                    .select('*') as any)
+                    .select('*')
 
                 if (fetchError) {
                     setDebugInfo({ error: fetchError })
@@ -55,12 +71,15 @@ export default function PlantsPage() {
                     const plantaKey = firstRow ? Object.keys(firstRow).find(key => key.toLowerCase() === 'planta') : 'planta'
 
                     const uniquePlants = Array.from(new Set(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         data.map((item: any) => item[plantaKey || 'planta'])
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             .filter((p: any) => p !== null && p !== undefined && String(p).trim() !== '')
                     )) as string[]
 
                     setPlants(uniquePlants.sort())
                 }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 console.error('Error fetching plants:', err)
                 setError(`Error de datos: ${err.message}`)
@@ -76,12 +95,22 @@ export default function PlantsPage() {
         <div className="min-h-screen bg-zinc-50 flex flex-col font-sans text-zinc-900">
             {/* Dark Header */}
             <header className="bg-brand-primary p-4 flex items-center shadow-md relative z-10">
-                <button
-                    onClick={() => router.push('/menu')}
-                    className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-                >
-                    <ArrowLeft className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => router.push('/menu')}
+                        className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                        title="Volver"
+                    >
+                        <ArrowLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                        onClick={() => router.push('/menu')}
+                        className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                        title="Ir al Menú Principal"
+                    >
+                        <Home className="h-6 w-6" />
+                    </button>
+                </div>
                 <div className="flex-1 text-center">
                     <h1 className="text-white text-2xl font-normal tracking-tight">
                         Selecciona Planta
@@ -130,7 +159,7 @@ export default function PlantsPage() {
                                         <div className="mt-6 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 text-left">
                                             <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">💡 Posible causa:</p>
                                             <p className="text-sm text-zinc-500 leading-relaxed font-medium">
-                                                Si en Supabase ves datos pero aquí sale "0 registros", es muy probable que sea un tema de **permisos (RLS)**. Debes agregar una política de "SELECT" para usuarios autenticados.
+                                                Si en Supabase ves datos pero aquí sale &quot;0 registros&quot;, es muy probable que sea un tema de **permisos (RLS)**. Debes agregar una política de &quot;SELECT&quot; para usuarios autenticados.
                                             </p>
                                         </div>
                                     )}
