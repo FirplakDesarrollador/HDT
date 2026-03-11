@@ -44,18 +44,21 @@ interface NumberedTextareaProps {
     onStepChange?: (index: number, e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     index: number;
     minHeight?: string;
+    showNumbering?: boolean;
 }
 
-function NumberedTextarea({ id, value, readOnly, placeholder, name, onStepChange, index, minHeight = 'min-h-[80px]', onChange }: NumberedTextareaProps) {
+function NumberedTextarea({ id, value, readOnly, placeholder, name, onStepChange, index, minHeight = 'min-h-[80px]', onChange, showNumbering = false }: NumberedTextareaProps) {
     const lines = value ? value.split('\n') : [''];
 
     return (
         <div className={`flex gap-3 w-full h-full ${minHeight} p-3 transition-colors ${readOnly ? 'bg-zinc-50/50' : 'bg-transparent hover:bg-zinc-50/30'} print:block print:p-0 print:bg-transparent`}>
-            <div className="flex flex-col text-[10px] font-bold text-zinc-400 select-none text-right min-w-[14px] opacity-60 leading-5 pt-[3px] print:hidden">
-                {lines.map((_, i) => (
-                    <div key={i} className="h-5 flex items-center justify-end">{i + 1}.</div>
-                ))}
-            </div>
+            {showNumbering && (
+                <div className="flex flex-col text-[10px] font-bold text-zinc-400 select-none text-right min-w-[14px] opacity-60 leading-5 pt-[3px] print:hidden">
+                    {lines.map((_, i) => (
+                        <div key={i} className="h-5 flex items-center justify-end">{i + 1}.</div>
+                    ))}
+                </div>
+            )}
             <textarea
                 id={id}
                 name={name}
