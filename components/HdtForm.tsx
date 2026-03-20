@@ -1070,9 +1070,10 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                     </tbody>
                 </table>
 
-                <div id="hdt-steps-table" className="bg-white border-2 border-brand-primary/20 rounded-3xl overflow-hidden shadow-sm print:table print:table-fixed print:w-full print:border-collapse print:rounded-none">
-                    <div className="print:table-header-group">
-                        <div className={`grid ${currentMode === 'breakdown' ? 'grid-cols-3' : 'grid-cols-[1.5fr_1fr_1fr_1fr]'} bg-zinc-50 divide-x-2 divide-brand-primary/20 border-b-2 border-brand-primary/20 print:table-row print:bg-transparent print:divide-brand-primary/10`}>
+                <div id="hdt-steps-table" className="bg-white border-2 border-brand-primary/20 rounded-3xl overflow-x-auto shadow-sm print:table print:table-fixed print:w-full print:border-collapse print:rounded-none">
+                    <div className="min-w-[800px] md:min-w-0 print:min-w-0">
+                        <div className="print:table-header-group">
+                            <div className={`grid ${currentMode === 'breakdown' ? 'grid-cols-3' : 'grid-cols-[1.5fr_1fr_1fr_1fr]'} bg-zinc-50 divide-x-2 divide-brand-primary/20 border-b-2 border-brand-primary/20 print:table-row print:bg-transparent print:divide-brand-primary/10`}>
                             {currentMode !== 'breakdown' && (
                                 <div role="columnheader" className="p-4 text-center font-bold text-brand-primary uppercase text-xs tracking-widest print:p-2 print:text-[8pt] print:border print:border-brand-primary/20">Acción Importante</div>
                             )}
@@ -1142,23 +1143,24 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                         ))}
                     </div>
 
-                    {currentMode !== 'view' && currentMode !== 'breakdown' && (
-                        <div className="p-4 bg-zinc-50 flex justify-center border-t-2 border-brand-primary/10">
-                            <button
-                                type="button"
-                                onClick={addStep}
-                                className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-brand-primary text-brand-primary rounded-xl font-bold hover:bg-brand-primary hover:text-white transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:outline-none"
-                                aria-label="Agregar un nuevo paso al procedimiento"
-                            >
-                                <Plus className="h-5 w-5" aria-hidden="true" />
-                                Agregar Paso
-                            </button>
-                        </div>
-                    )}
+                        {currentMode !== 'view' && currentMode !== 'breakdown' && (
+                            <div className="p-4 bg-zinc-50 flex justify-center border-t-2 border-brand-primary/10">
+                                <button
+                                    type="button"
+                                    onClick={addStep}
+                                    className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-brand-primary text-brand-primary rounded-xl font-bold hover:bg-brand-primary hover:text-white transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:outline-none"
+                                    aria-label="Agregar un nuevo paso al procedimiento"
+                                >
+                                    <Plus className="h-5 w-5" aria-hidden="true" />
+                                    Agregar Paso
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Footer Section (Two large boxes) */}
-                <section aria-label="Información complementaria" className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+                <section aria-label="Información complementaria" className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-32 md:pb-24">
                     <div className="bg-white border-2 border-brand-primary/20 rounded-3xl overflow-hidden space-y-0 shadow-sm print:rounded-none">
                         <label htmlFor="input-prohibido" className="text-lg font-bold text-brand-primary uppercase tracking-tight block text-center border-b-2 border-brand-primary/10 py-2 bg-zinc-50/50 print:py-1 print:text-base print:bg-transparent">
                             Prohibido y porque
@@ -1245,27 +1247,27 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                 <div
                     role="toolbar"
                     aria-label="Acciones del formulario"
-                    className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-50 hidden-print"
+                    className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-2 md:px-4 z-50 hidden-print"
                 >
-                    <div className="bg-white/80 backdrop-blur-xl border-2 border-brand-primary/10 rounded-3xl p-4 shadow-2xl flex items-center justify-between gap-4">
+                    <div className="bg-white/95 backdrop-blur-xl border-2 border-brand-primary/10 rounded-2xl md:rounded-3xl p-3 md:p-4 shadow-2xl flex items-center justify-between gap-2 md:gap-4 flex-wrap sm:flex-nowrap">
                         <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={() => router.back()}
-                                className="h-12 w-12 bg-zinc-100 text-zinc-600 rounded-2xl font-bold hover:bg-zinc-200 transition-all flex items-center justify-center"
-                                title={currentMode === 'view' || currentMode === 'breakdown' ? 'Volver a la página anterior' : 'Cancelar edición y volver'}
-                                aria-label={currentMode === 'view' || currentMode === 'breakdown' ? 'Volver a la página anterior' : 'Cancelar edición y volver'}
+                                className="h-10 w-10 md:h-12 md:w-12 bg-zinc-100 text-zinc-600 rounded-xl md:rounded-2xl font-bold hover:bg-zinc-200 transition-all flex items-center justify-center shrink-0"
+                                title={currentMode === 'view' || currentMode === 'breakdown' ? 'Volver' : 'Cancelar'}
+                                aria-label="Volver o Cancelar"
                             >
-                                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+                                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => router.push('/menu')}
-                                className="h-12 w-12 bg-brand-primary/10 text-brand-primary rounded-2xl font-bold hover:bg-brand-primary hover:text-white transition-all flex items-center justify-center"
-                                title="Ir al Menú Principal"
-                                aria-label="Ir al Menú Principal"
+                                className="h-10 w-10 md:h-12 md:w-12 bg-brand-primary/10 text-brand-primary rounded-xl md:rounded-2xl font-bold hover:bg-brand-primary hover:text-white transition-all flex items-center justify-center shrink-0"
+                                title="Menú Principal"
+                                aria-label="Menú Principal"
                             >
-                                <Home className="h-5 w-5" aria-hidden="true" />
+                                <Home className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                             </button>
                         </div>
 
@@ -1273,10 +1275,10 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                             <button
                                 type="button"
                                 onClick={() => setCurrentMode(currentMode === 'view' ? 'breakdown' : 'view')}
-                                className="px-6 py-3 bg-brand-primary/10 text-brand-primary rounded-2xl font-bold hover:bg-brand-primary hover:text-white transition-all flex items-center gap-2"
+                                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-brand-primary/10 text-brand-primary rounded-xl md:rounded-2xl font-bold hover:bg-brand-primary hover:text-white transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center shrink-0"
                             >
-                                <LayoutGrid className="h-5 w-5" />
-                                {currentMode === 'view' ? 'Ver Desglose' : 'Ver Completa'}
+                                <LayoutGrid className="h-4 w-4 md:h-5 md:w-5 hidden sm:block shrink-0" />
+                                <span className="whitespace-nowrap">{currentMode === 'view' ? 'Desglose' : 'Completa'}</span>
                             </button>
                         )}
 
@@ -1284,10 +1286,10 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                             <button
                                 type="button"
                                 onClick={() => setShowVersionHistory(!showVersionHistory)}
-                                className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${showVersionHistory ? 'bg-orange-100 text-orange-700 border-2 border-orange-200' : 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white'}`}
+                                className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base rounded-xl md:rounded-2xl font-bold transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center shrink-0 ${showVersionHistory ? 'bg-orange-100 text-orange-700 border-2 border-orange-200' : 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white'}`}
                             >
-                                <History className="h-5 w-5" />
-                                {showVersionHistory ? 'Cerrar Historial' : 'Ver Versiones Anteriores'}
+                                <History className="h-4 w-4 md:h-5 md:w-5 hidden sm:block shrink-0" />
+                                <span className="whitespace-nowrap">{showVersionHistory ? 'Cerrar His.' : 'Versiones'}</span>
                             </button>
                         )}
 
@@ -1295,27 +1297,25 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                             <button
                                 type="button"
                                 onClick={handlePrint}
-                                className="px-6 py-3 bg-zinc-800 text-white rounded-2xl font-bold hover:bg-black transition-all flex items-center gap-2"
+                                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-zinc-800 text-white rounded-xl md:rounded-2xl font-bold hover:bg-black transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center shrink-0"
                                 aria-label="Imprimir la hoja de trabajo"
                             >
-                                <Printer className="h-5 w-5" aria-hidden="true" />
-                                Imprimir
+                                <Printer className="h-4 w-4 md:h-5 md:w-5 shrink-0" aria-hidden="true" />
+                                <span className="whitespace-nowrap hidden sm:inline">Imprimir</span>
                             </button>
                         )}
 
-
-
-                        <div className="flex-1 flex justify-center">
+                        <div className="flex-1 flex justify-center order-first sm:order-none w-full sm:w-auto mb-2 sm:mb-0 empty:hidden">
                             {error && (
-                                <div className="flex items-center gap-2 text-red-600 font-bold bg-red-50 px-4 py-2 rounded-xl animate-bounce">
-                                    <AlertCircle className="h-5 w-5" />
-                                    {error}
+                                <div className="flex items-center gap-2 text-red-600 font-bold bg-red-50 px-3 md:px-4 py-1.5 md:py-2 rounded-xl animate-bounce text-xs md:text-sm">
+                                    <AlertCircle className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
+                                    <span>{error}</span>
                                 </div>
                             )}
                             {success && (
-                                <div className="flex items-center gap-2 text-green-600 font-bold bg-green-50 px-4 py-2 rounded-xl animate-pulse">
-                                    <CheckCircle2 className="h-5 w-5" />
-                                    ¡Guardado con éxito!
+                                <div className="flex items-center gap-2 text-green-600 font-bold bg-green-50 px-3 md:px-4 py-1.5 md:py-2 rounded-xl animate-pulse text-xs md:text-sm">
+                                    <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
+                                    <span className="whitespace-nowrap">¡Guardado con éxito!</span>
                                 </div>
                             )}
                         </div>
@@ -1324,14 +1324,14 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="px-10 py-3 bg-brand-primary text-white rounded-2xl font-bold hover:bg-brand-secondary transition-all shadow-lg hover:shadow-brand-primary/30 flex items-center gap-2 disabled:opacity-50"
+                                className="px-6 md:px-10 py-2.5 md:py-3 text-sm md:text-base bg-brand-primary text-white rounded-xl md:rounded-2xl font-bold hover:bg-brand-secondary transition-all shadow-lg hover:shadow-brand-primary/30 flex items-center gap-2 disabled:opacity-50 flex-1 sm:flex-none justify-center shrink-0"
                             >
                                 {saving ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin shrink-0" />
                                 ) : (
-                                    <Save className="h-5 w-5" />
+                                    <Save className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
                                 )}
-                                {currentMode === 'create' ? 'Crear HDT' : 'Guardar Cambios'}
+                                <span className="whitespace-nowrap">{currentMode === 'create' ? 'Crear HDT' : 'Guardar Cambios'}</span>
                             </button>
                         )}
 
@@ -1340,14 +1340,14 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                                 type="button"
                                 onClick={handleCreateNewVersion}
                                 disabled={creatingVersion || saving}
-                                className="px-6 py-3 bg-zinc-100 text-brand-primary border-2 border-brand-primary/20 rounded-2xl font-bold hover:bg-brand-primary/10 transition-all flex items-center gap-2 disabled:opacity-50"
+                                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-zinc-100 text-brand-primary border-2 border-brand-primary/20 rounded-xl md:rounded-2xl font-bold hover:bg-brand-primary/10 transition-all flex items-center gap-2 disabled:opacity-50 flex-1 sm:flex-none justify-center shrink-0"
                             >
                                 {creatingVersion ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin shrink-0" />
                                 ) : (
-                                    <History className="h-5 w-5" />
+                                    <History className="h-4 w-4 md:h-5 md:w-5 hidden sm:block shrink-0" />
                                 )}
-                                Crear Nueva Versión
+                                <span className="whitespace-nowrap">Nueva Versión</span>
                             </button>
                         )}
                     </div>
