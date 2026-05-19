@@ -3,10 +3,30 @@
 import NextImage from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Home, Save, Plus, Trash2, Loader2, AlertCircle, CheckCircle2, Search, X, User, LayoutGrid, Printer, History, Clock, Check } from 'lucide-react'
+import { ArrowLeft, Home, Save, Plus, Trash2, Loader2, AlertCircle, CheckCircle2, Search, X, User, LayoutGrid, Printer, History, Clock, Check, GripVertical } from 'lucide-react'
 import { createClient } from '../lib/supabase/browser-client'
 import { createTHClient } from '../lib/supabase/th-client'
 import { Database } from '../lib/supabase/database.types'
+
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+    TouchSensor
+} from '@dnd-kit/core'
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers'
 
 type HdtRow = Database['public']['Tables']['hdts']['Row']
 type StepRow = Database['public']['Tables']['hdt_steps']['Row']
@@ -101,6 +121,7 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
     const [success, setSuccess] = useState(false)
     const [versionHistory, setVersionHistory] = useState<HdtRow[]>([])
     const [creatingVersion, setCreatingVersion] = useState(false)
+    const [canDelete, setCanDelete] = useState(false)
     // Form State
     const [formData, setFormData] = useState<Partial<HdtRow>>({
         planta: '',
@@ -118,8 +139,8 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
         proceso: ''
     })
 
-    const [steps, setSteps] = useState<Partial<StepRow>[]>([
-        { acciones_importantes: '', paso_importante: '', punto_clave: '', razon_punto_clave: '', step_no: 1 }
+    const [steps, setSteps] = useState<(Partial<StepRow> & { tempId: string })[]>([
+        { acciones_importantes: '', paso_importante: '', punto_clave: '', razon_punto_clave: '', step_no: 1, tempId: Math.random().toString(36).substring(2, 9) }
     ])
 
     // Search & Selection state
@@ -157,11 +178,40 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
     const [plantasOptions, setPlantasOptions] = useState<string[]>([])
     const [loadingPlantas, setLoadingPlantas] = useState(false)
 
+    // DND Sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     useEffect(() => {
         if ((currentMode === 'edit' || currentMode === 'view' || currentMode === 'breakdown') && hdtId) {
             fetchHdtData()
         }
         fetchPlantas()
+        
+        const checkUserPerms = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user && user.email) {
+                const email = user.email.toLowerCase()
+                if (email === 'jakeline.chaverra@firplak.com' || email === 'coordinacioncalidad@firplak.com') {
+                    setCanDelete(true)
+                }
+            }
+        }
+        checkUserPerms()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hdtId, currentMode])
 
@@ -233,7 +283,7 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
 
             if (stepsError) throw stepsError
             if (hdtSteps && hdtSteps.length > 0) {
-                setSteps(hdtSteps as StepRow[])
+                setSteps((hdtSteps as StepRow[]).map(s => ({ ...s, tempId: s.id || Math.random().toString(36).substring(2, 9) })))
             }
 
             // Fetch version history if codigo exists
@@ -460,7 +510,14 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
     }
 
     const addStep = () => {
-        setSteps([...steps, { acciones_importantes: '', paso_importante: '', punto_clave: '', razon_punto_clave: '', step_no: steps.length + 1 }])
+        setSteps([...steps, { 
+            acciones_importantes: '', 
+            paso_importante: '', 
+            punto_clave: '', 
+            razon_punto_clave: '', 
+            step_no: steps.length + 1,
+            tempId: Math.random().toString(36).substring(2, 9)
+        }])
     }
 
     const removeStep = (index: number) => {
@@ -475,6 +532,21 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
     const handlePrint = () => {
         window.print()
     }
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setSteps((items) => {
+                const oldIndex = items.findIndex((item) => item.tempId === active.id);
+                const newIndex = items.findIndex((item) => item.tempId === over.id);
+
+                const newSteps = arrayMove(items, oldIndex, newIndex);
+                // Re-update step_no for persistence consistency
+                return newSteps.map((step, i) => ({ ...step, step_no: i + 1 }));
+            });
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -618,6 +690,34 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
             setError(err.message || 'Error al crear la nueva versión.')
         } finally {
             setCreatingVersion(false)
+        }
+    }
+
+    const handleDeleteAllVersions = async () => {
+        if (!hdtId || !formData.codigo) return
+        const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar TODAS las versiones de esta HDT? Esta acción no se puede deshacer.")
+        if (!confirmDelete) return
+        
+        setSaving(true)
+        setError(null)
+        try {
+            // Eliminar todos los pasos de todas las versiones con este código
+            const { data: versions } = await supabase.from('hdts').select('id').eq('codigo', formData.codigo)
+            if (versions && versions.length > 0) {
+                const versionIds = versions.map((v: { id: string }) => v.id)
+                await supabase.from('hdt_steps').delete().in('hdt_id', versionIds)
+            }
+            
+            // Eliminar las HDTs
+            const { error: delError } = await supabase.from('hdts').delete().eq('codigo', formData.codigo)
+            if (delError) throw delError
+            
+            router.push('/menu')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            console.error('Error al eliminar:', err)
+            setError(err.message || 'Error al eliminar la HDT.')
+            setSaving(false)
         }
     }
 
@@ -1084,63 +1184,29 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                     </div>
 
                     <div className="divide-y-2 divide-brand-primary/10 print:table-row-group">
-                        {steps.map((step, index) => (
-                            <div key={index} className={`grid ${currentMode === 'breakdown' ? 'grid-cols-3' : 'grid-cols-[1.5fr_1fr_1fr_1fr]'} relative group divide-x-2 divide-brand-primary/5 print:table-row`}>
-                                {currentMode !== 'breakdown' && (
-                                    <div className="relative">
-                                        <NumberedTextarea
-                                            id={`acciones-${index}`}
-                                            name="acciones_importantes"
-                                            readOnly={currentMode === 'view'}
-                                            value={step.acciones_importantes || ''}
-                                            onStepChange={handleStepChange}
-                                            index={index}
-                                            minHeight="min-h-[140px]"
-                                            placeholder="Redacta detalladamente las acciones (el cómo, con qué y para qué) para alcanzar el paso importante..."
-                                        />
-                                    </div>
-                                )}
-                                <NumberedTextarea
-                                    id={`paso-${index}`}
-                                    name="paso_importante"
-                                    readOnly={currentMode === 'view' || currentMode === 'breakdown'}
-                                    value={step.paso_importante || ''}
-                                    onStepChange={handleStepChange}
-                                    index={index}
-                                    placeholder="Actividad corta que genere transformación"
-                                />
-                                <NumberedTextarea
-                                    id={`punto-${index}`}
-                                    name="punto_clave"
-                                    readOnly={currentMode === 'view' || currentMode === 'breakdown'}
-                                    value={step.punto_clave || ''}
-                                    onStepChange={handleStepChange}
-                                    index={index}
-                                    placeholder="¿Cómo logro el paso importante?"
-                                />
-                                <div className="relative">
-                                    <NumberedTextarea
-                                        id={`razon-${index}`}
-                                        name="razon_punto_clave"
-                                        readOnly={currentMode === 'view' || currentMode === 'breakdown'}
-                                        value={step.razon_punto_clave || ''}
-                                        onStepChange={handleStepChange}
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                            modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
+                        >
+                             <SortableContext
+                                items={steps.map((step) => step.tempId)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                {steps.map((step, index) => (
+                                    <SortableStepRow
+                                        key={step.tempId}
                                         index={index}
-                                        placeholder="¿Por qué o cuál es la razón de este punto clave?"
+                                        step={step}
+                                        currentMode={currentMode}
+                                        handleStepChange={handleStepChange}
+                                        removeStep={removeStep}
+                                        stepsCount={steps.length}
                                     />
-                                    {steps.length > 1 && currentMode !== 'view' && currentMode !== 'breakdown' && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeStep(index)}
-                                            className="absolute bottom-1 right-1 p-1.5 bg-red-50 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white z-10"
-                                            aria-label="Eliminar este paso"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                                ))}
+                            </SortableContext>
+                        </DndContext>
                     </div>
 
                         {currentMode !== 'view' && currentMode !== 'breakdown' && (
@@ -1350,9 +1416,122 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
                                 <span className="whitespace-nowrap">Nueva Versión</span>
                             </button>
                         )}
+                        
+                        {canDelete && currentMode !== 'create' && (
+                            <button
+                                type="button"
+                                onClick={handleDeleteAllVersions}
+                                disabled={saving}
+                                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-red-100 text-red-600 border-2 border-red-200 rounded-xl md:rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 disabled:opacity-50 flex-1 sm:flex-none justify-center shrink-0"
+                                title="Eliminar HDT completa"
+                            >
+                                <Trash2 className="h-4 w-4 md:h-5 md:w-5 hidden sm:block shrink-0" />
+                                <span className="whitespace-nowrap">Eliminar</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </form>
         </main>
     )
+}
+
+interface SortableStepRowProps {
+    index: number;
+    step: Partial<StepRow> & { tempId: string };
+    currentMode: 'create' | 'edit' | 'view' | 'breakdown';
+    handleStepChange: (index: number, e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    removeStep: (index: number) => void;
+    stepsCount: number;
+}
+
+function SortableStepRow({ index, step, currentMode, handleStepChange, removeStep, stepsCount }: SortableStepRowProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: step.tempId });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 100 : 'auto',
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`grid ${currentMode === 'breakdown' ? 'grid-cols-3' : 'grid-cols-[1.5fr_1fr_1fr_1fr]'} relative group divide-x-2 divide-brand-primary/5 print:table-row bg-white`}
+        >
+            {currentMode !== 'breakdown' && (
+                <div className="relative">
+                    {(currentMode === 'create' || currentMode === 'edit') && (
+                        <div
+                            {...attributes}
+                            {...listeners}
+                            className="absolute left-1.5 top-2.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-20 hidden-print"
+                        >
+                            <GripVertical className="h-4 w-4 text-brand-primary/40 hover:text-brand-primary" />
+                        </div>
+                    )}
+                    <div className={(currentMode === 'create' || currentMode === 'edit') ? "pl-5" : ""}>
+                        <NumberedTextarea
+                            id={`acciones-${index}`}
+                            name="acciones_importantes"
+                            readOnly={currentMode === 'view'}
+                            value={step.acciones_importantes || ''}
+                            onStepChange={handleStepChange}
+                            index={index}
+                            minHeight="min-h-[140px]"
+                            placeholder="Redacta detalladamente las acciones..."
+                        />
+                    </div>
+                </div>
+            )}
+            <NumberedTextarea
+                id={`paso-${index}`}
+                name="paso_importante"
+                readOnly={currentMode === 'view' || currentMode === 'breakdown'}
+                value={step.paso_importante || ''}
+                onStepChange={handleStepChange}
+                index={index}
+                placeholder="Actividad corta que genere transformación"
+            />
+            <NumberedTextarea
+                id={`punto-${index}`}
+                name="punto_clave"
+                readOnly={currentMode === 'view' || currentMode === 'breakdown'}
+                value={step.punto_clave || ''}
+                onStepChange={handleStepChange}
+                index={index}
+                placeholder="¿Cómo logro el paso importante?"
+            />
+            <div className="relative">
+                <NumberedTextarea
+                    id={`razon-${index}`}
+                    name="razon_punto_clave"
+                    readOnly={currentMode === 'view' || currentMode === 'breakdown'}
+                    value={step.razon_punto_clave || ''}
+                    onStepChange={handleStepChange}
+                    index={index}
+                    placeholder="¿Por qué o cuál es la razón de este punto clave?"
+                />
+                {stepsCount > 1 && currentMode !== 'view' && currentMode !== 'breakdown' && (
+                    <button
+                        type="button"
+                        onClick={() => removeStep(index)}
+                        className="absolute bottom-1 right-1 p-1.5 bg-red-50 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white z-10"
+                        aria-label="Eliminar este paso"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
 }
