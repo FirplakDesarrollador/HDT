@@ -7,6 +7,7 @@ import { ArrowLeft, Home, Save, Plus, Trash2, Loader2, AlertCircle, CheckCircle2
 import { createClient } from '../lib/supabase/browser-client'
 import { createTHClient } from '../lib/supabase/th-client'
 import { Database } from '../lib/supabase/database.types'
+import { isAuthorizedEditor } from '../lib/authorized-editors'
 
 import {
     DndContext,
@@ -205,9 +206,11 @@ export default function HdtForm({ hdtId, mode }: HdtFormProps) {
         const checkUserPerms = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (user && user.email) {
-                const email = user.email.toLowerCase()
-                if (email === 'jakeline.chaverra@firplak.com' || email === 'coordinacioncalidad@firplak.com') {
-                    setCanDelete(true)
+                const authorized = isAuthorizedEditor(user.email)
+                setCanDelete(authorized)
+                // Si llegó al modo edit sin autorización, forzar vista solo lectura
+                if (!authorized && (currentMode === 'edit')) {
+                    setCurrentMode('view')
                 }
             }
         }

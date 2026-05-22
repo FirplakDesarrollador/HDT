@@ -4,9 +4,11 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, LayoutGrid, Plus, Home, ChevronRight, Edit3 } from 'lucide-react'
 import { createClient } from '../../lib/supabase/browser-client'
+import { isAuthorizedEditor } from '../../lib/authorized-editors'
 
 export default function MenuPage() {
     const [userName, setUserName] = useState('')
+    const [canEdit, setCanEdit] = useState(false)
     const router = useRouter()
     const supabase = createClient()
 
@@ -18,6 +20,7 @@ export default function MenuPage() {
                 const namePart = user.email.split('@')[0].split('.')[0]
                 const capitalized = namePart.charAt(0).toUpperCase() + namePart.slice(1).toLowerCase()
                 setUserName(capitalized)
+                setCanEdit(isAuthorizedEditor(user.email))
             }
         }
         getUser()
@@ -28,23 +31,28 @@ export default function MenuPage() {
         router.push('/login')
     }
 
-    const menuItems = [
+    const allMenuItems = [
         {
             title: 'Ver HDTs creadas',
             image: '/brand/lista.avif',
             action: () => router.push('/plants?action=view'),
+            requiresEdit: false,
         },
         {
             title: 'Editar una HDT',
             icon: <Edit3 className="h-10 w-10 text-brand-primary" />,
             action: () => router.push('/plants?action=edit'),
+            requiresEdit: true,
         },
         {
             title: 'Crear una nueva HDT',
             icon: <Plus className="h-10 w-10 text-brand-primary" />,
             action: () => router.push('/hdt/create'),
+            requiresEdit: false,
         },
     ]
+
+    const menuItems = allMenuItems.filter(item => !item.requiresEdit || canEdit)
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 sm:p-12 relative">
