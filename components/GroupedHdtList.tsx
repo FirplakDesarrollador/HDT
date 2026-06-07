@@ -12,6 +12,19 @@ interface GroupedHdtListProps {
     action: string
 }
 
+const PROCESO_ORDER = [
+    'Alistamiento de moldes',
+    'Pintura',
+    'Contramoldes',
+    'Vaciado',
+    'Prensado',
+    'Desprensado',
+    'Desmolde',
+    'Pulido',
+    'Acabado',
+    'Empaque'
+]
+
 export default function GroupedHdtList({ groupedHdts, action }: GroupedHdtListProps) {
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
     const [showVersionsForCode, setShowVersionsForCode] = useState<Record<string, boolean>>({})
@@ -34,7 +47,19 @@ export default function GroupedHdtList({ groupedHdts, action }: GroupedHdtListPr
 
     return (
         <div className="space-y-6">
-            {Object.entries(groupedHdts).map(([proceso, allItems]) => {
+            {Object.entries(groupedHdts)
+                .sort(([a], [b]) => {
+                    const cleanA = a.toLowerCase().trim()
+                    const cleanB = b.toLowerCase().trim()
+                    const indexA = PROCESO_ORDER.findIndex(p => p.toLowerCase().trim() === cleanA)
+                    const indexB = PROCESO_ORDER.findIndex(p => p.toLowerCase().trim() === cleanB)
+
+                    if (indexA !== -1 && indexB !== -1) return indexA - indexB
+                    if (indexA !== -1) return -1
+                    if (indexB !== -1) return 1
+                    return cleanA.localeCompare(cleanB)
+                })
+                .map(([proceso, allItems]) => {
                 const isExpanded = expandedGroups[proceso]
 
                 // Agrupar por código para identificar versiones

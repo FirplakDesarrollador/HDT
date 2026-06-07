@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../../../lib/supabase/browser-client'
 import { isAuthorizedEditor } from '../../../../lib/authorized-editors'
@@ -8,13 +8,13 @@ import HdtForm from '../../../../components/HdtForm'
 import { Loader2, ShieldX } from 'lucide-react'
 
 interface EditHdtPageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export default function EditHdtPage({ params }: EditHdtPageProps) {
-    const { id } = params
+    const { id } = use(params)
     const router = useRouter()
     const [authState, setAuthState] = useState<'loading' | 'authorized' | 'unauthorized'>('loading')
 
